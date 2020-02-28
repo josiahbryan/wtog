@@ -322,7 +322,8 @@ function TwoWorldsProto() {
 						
 						// Draw arc.
 						ctx.beginPath();
-						ctx.arc(cx, cy, radius, a2r(aStart - .25), a2r(aEnd + .25));
+						// ctx.arc(cx, cy, radius, a2r(aStart - .25), a2r(aEnd + .25));
+						ctx.arc(cx, cy, radius, a2r(aStart), a2r(aEnd));
 						ctx.strokeStyle = current ? gradient : 'rgba(255,255,255,0.25)';
 						ctx.lineWidth = 30;
 						ctx.lineCap = current ? 'round' : 'butt';
@@ -349,6 +350,8 @@ function TwoWorldsProto() {
 				if(!TwoWorldsProto.counter) {
 					TwoWorldsProto.counter = 0;
 				}
+
+				return;
 
 				const lpad = x => (x<10 ? '0' : '') + x;
 				const innerTime = lpad(currentUtcHours + localSet.gmtOffset)    + ':' + minutesPadded;
