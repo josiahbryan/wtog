@@ -222,6 +222,7 @@ function TwoWorldsProto() {
 					// Then move date by this set's GMT offset
 					date.setHours(date.getHours() + set.gmtOffset);
 
+					// Use the local set's day (since day could be different due to timezone)
 					const currentDayNum = date.getDay();
 					const isWeekend = !(set.weekdays.includes(currentDayNum));
 					
@@ -229,7 +230,7 @@ function TwoWorldsProto() {
 					set.isWeekend = isWeekend;
 					set.currentDayNum = currentDayNum;
 
-					// Set .blocks to the current day
+					// Set .blocks to the current day for this set
 					set.blocks = set.week.find(d => d.days.includes(currentDayNum));
 					if(!set.blocks) {
 						console.warn("This is for debugging the next error: ", { set, currentDayNum });
@@ -238,6 +239,7 @@ function TwoWorldsProto() {
 						set.blocks = set.blocks.blocks;
 					}
 
+					// Find current block in this current day's blocks
 					set.blocks.forEach(block => {
 						const { start, end } = block;
 
@@ -257,6 +259,7 @@ function TwoWorldsProto() {
 						}
 					})
 
+					// Sort so current block renders LAST
 					const blocks = set.blocks.sort((b, a) => {
 						if(a.current && !b.current) {
 							return -1;
@@ -268,6 +271,7 @@ function TwoWorldsProto() {
 						}
 					});
 
+					// Actually render the arc and text
 					blocks.forEach(block => {
 						
 						const { start, end, name, current } = block;
@@ -310,10 +314,6 @@ function TwoWorldsProto() {
 
 				const nonLocalSet = localSet === inner ? outer : inner;
 
-				if(!TwoWorldsProto.counter) {
-					TwoWorldsProto.counter = 0;
-				}
-
 				const lpad = x => (x<10 ? '0' : '') + x;
 				const innerTime = lpad(currentUtcHours + localSet.gmtOffset)    + ':' + minutesPadded;
 				const outerTime = lpad(currentUtcHours + nonLocalSet.gmtOffset) + ':' + minutesPadded;
@@ -346,53 +346,51 @@ function TwoWorldsProto() {
 				ctx.strokeStyle = 'rgba(255,255,255,0.5)'
 				ctx.stroke();
 
+				// Render week illustration below primary circle illustration
 				function renderWeekBlocks(blocks, yStart) {
 					ctx.save();
-					const blockSize = 16,
-						blockPadding = 4,
+					const blockSize   = 16,
+						blockPadding  = 4,
 						blockFontsize = 10,
 						itemWidth = blockSize + blockPadding,
 						by = yStart;
+
 					// start bx at center - half total width
 					let bx = cx - (itemWidth * weekBlocks.length) / 2;
 
 					for(const block of blocks) {
 						const [ dayName, isWeekendFlag ] = block;
 
-						// ctx.globalAlpha = block === weekBlocks[0] || block === weekBlocks[weekBlocks.length-1] ? 0.5 : 1;
 						const centerIdx = blocks.length / 2 -.5;
 						const blockIdx = centerIdx - Math.abs(centerIdx - blocks.indexOf(block));
 						const alpha = blockIdx / centerIdx;
+
 						ctx.globalAlpha = alpha + .1;
-						// console.log({ blockIdx, alpha, centerIdx })
 						ctx.fillStyle = isWeekendFlag ? 'yellow' : 'rgba(255,255,255,0.75)';
 						ctx.fillRect(bx, by, blockSize, blockSize);
-						// roundedRect(ctx, bx, by, blockSize - 4, blockSize - 4, 2);
 
 						ctx.fillStyle = 'black';
 						ctx.font = blockFontsize + "px monospace";
 						ctx.textBaseline = 'top';
-						ctx.fillText(dayName, bx + blockSize / 2 - blockFontsize / 2 + 5, by + blockSize / 2 - blockFontsize / 2);
+						ctx.fillText(dayName, 
+							bx + blockSize / 2 - blockFontsize / 2 + 5, 
+							by + blockSize / 2 - blockFontsize / 2);
 						
 						bx += itemWidth;
 					}
+
 					ctx.restore();
 				}
 
 
 				const dayLetters = ['S','M','T','W','R','F','S'];
-				// for(let d = nonLocalSet.currentDayNum - 5; d < )
+				// 9 days, day 0 and 8 fade out 50%, day 5 is center day so and it is current
+				// Struct of members is [ dayName, isWeekendFlag ]
 				const buildWeekBlocks = set => {
 					const blocks = [];
-					// set.currentDayNum =4;
 					for(let x = 0; x < 9; x++) {
 						let d = set.currentDayNum - 4 + x;
-						// if (d < 0) {
-						// 	d = 7 + d;
-						// } else
-						// if (d > 6) {
-						// 	d = 7 - d;
-						// }
+						
 						if (d > 6) {
 							d = d - 7;
 						} else
@@ -400,26 +398,22 @@ function TwoWorldsProto() {
 							d = d + 7;
 						}
 						const dayLetter = dayLetters[d];
-						blocks.push([ dayLetter, !set.weekdays.includes(d), d ]);
+						blocks.push([ dayLetter, !set.weekdays.includes(d) ]);
 					}
-					// console.log({ set, blocks })
-					// console.log(blocks);
 					return blocks;
 				}
 				const weekBlocks = buildWeekBlocks(nonLocalSet);
 				const weekBlocks2 = buildWeekBlocks(localSet);
 				
-				// 9 days, day 0 and 8 fade out 50%, day 5 is center day so and it is current
-				// Struct of members is [ dayName, isWeekendFlag ]
-				// const weekBlocks  = [ ['M',0],['T',0], ['W',0],['R',0],['F',1],['S',1],['S',0],['M',0],['T',0] ];
-				// const weekBlocks2 = [ ['M',0],['T',0], ['W',0],['R',0],['F',0],['S',1],['S',1],['M',0],['T',0] ];
 
 				renderWeekBlocks(weekBlocks,  cy + radiusBase * .4 + 50);
 				renderWeekBlocks(weekBlocks2, cy + radiusBase * .4 + 70);
 
 				ctx.font = '18px serif';
-				ctx.fillText(`${nonLocalSet.name}: ${nonLocalDay} ${isNonLocalWeeked ? '(Weekend)' : ''}`, cx, cy + radiusBase * .4 + 47);
-				ctx.fillText(`${localSet.name}: ${localDay} ${isLocalWeekend ? '(Weekend)' : ''}`, cx, cy + radiusBase * .4 + 108);
+				ctx.fillText(`${nonLocalSet.name}: ${nonLocalDay} ${isNonLocalWeeked ? '(Weekend)' : ''}`, 
+					cx, cy + radiusBase * .4 + 47);
+				ctx.fillText(`${localSet.name}: ${localDay} ${isLocalWeekend   ? '(Weekend)' : ''}`, 
+					cx, cy + radiusBase * .4 + 108);
 
 
 			}, 1000 / 4);
