@@ -351,8 +351,6 @@ function TwoWorldsProto() {
 					TwoWorldsProto.counter = 0;
 				}
 
-				return;
-
 				const lpad = x => (x<10 ? '0' : '') + x;
 				const innerTime = lpad(currentUtcHours + localSet.gmtOffset)    + ':' + minutesPadded;
 				const outerTime = lpad(currentUtcHours + nonLocalSet.gmtOffset) + ':' + minutesPadded;
