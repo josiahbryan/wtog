@@ -153,9 +153,9 @@ function TwoWorldsProto() {
 				clearInterval(TwoWorldsProto.tid)
 			}
 
-			const setIntervalx = f => f();
+			// const setIntervalx = f => f();
 
-			TwoWorldsProto.tid = setIntervalx(() => {
+			TwoWorldsProto.tid = setInterval(() => {
 
 				const ctx = canvas.getContext('2d');
 				ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -364,7 +364,7 @@ function TwoWorldsProto() {
 						const blockIdx = centerIdx - Math.abs(centerIdx - blocks.indexOf(block));
 						const alpha = blockIdx / centerIdx;
 						ctx.globalAlpha = alpha + .1;
-						console.log({ blockIdx, alpha, centerIdx })
+						// console.log({ blockIdx, alpha, centerIdx })
 						ctx.fillStyle = isWeekendFlag ? 'yellow' : 'rgba(255,255,255,0.75)';
 						ctx.fillRect(bx, by, blockSize, blockSize);
 						// roundedRect(ctx, bx, by, blockSize - 4, blockSize - 4, 2);
@@ -403,7 +403,7 @@ function TwoWorldsProto() {
 						blocks.push([ dayLetter, !set.weekdays.includes(d), d ]);
 					}
 					// console.log({ set, blocks })
-					console.log(blocks);
+					// console.log(blocks);
 					return blocks;
 				}
 				const weekBlocks = buildWeekBlocks(nonLocalSet);
@@ -422,7 +422,7 @@ function TwoWorldsProto() {
 				ctx.fillText(`${localSet.name}: ${localDay} ${isLocalWeekend ? '(Weekend)' : ''}`, cx, cy + radiusBase * .4 + 108);
 
 
-			}, 1000 / 10);
+			}, 1000 / 4);
 
 		} else {
 			console.warn("No canvas available")
