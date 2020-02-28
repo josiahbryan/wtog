@@ -73,7 +73,7 @@ const worldsDef = {
 		weekdays: [ 0,1,2,3,4 ],
 		week: [
 			{
-				days: [ 0,1,2,3,4 ],
+				days: [ 0,1,2,3 ],
 				blocks: [
 					{
 						start: 2230,
@@ -94,7 +94,64 @@ const worldsDef = {
 				], // blocks
 			}, // day
 			{
-				days: [ 5,6 ],
+				days: [ 4 ],
+				blocks: [
+					{
+						start: 2230,
+						end:    700,
+						name:  'Sleep',
+						current: true
+					},
+					{
+						start:  700,
+						end:   1730,
+						name:  'Work',
+					},
+					{
+						start: 1730,
+						end:   2030,
+						name:  'Church',
+					},
+					{
+						start: 2030,
+						end:   2230,
+						name:  'Evening',
+					}
+				], // blocks
+			}, // day
+			{
+				days: [ 5 ],
+				blocks: [
+					{
+						start: 2300,
+						end:    830,
+						name:  'Sleep',
+						current: true
+					},
+					{
+						start:  830,
+						end:   1200,
+						name:  'Morning',
+					},
+					{
+						start: 1200,
+						end:   1500,
+						name:  'Afternoon',
+					},
+					{
+						start: 1500,
+						end:   1945,
+						name:  'Church',
+					},
+					{
+						start: 1945,
+						end:   2300,
+						name:  'Evening',
+					}
+				], // blocks
+			}, // day 
+			{
+				days: [ 6 ],
 				blocks: [
 					{
 						start: 2300,

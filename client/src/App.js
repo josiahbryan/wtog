@@ -366,7 +366,7 @@ function TwoWorldsProto() {
 						const alpha = blockIdx / centerIdx;
 
 						ctx.globalAlpha = alpha + .1;
-						ctx.fillStyle = isWeekendFlag ? 'yellow' : 'rgba(255,255,255,0.75)';
+						ctx.fillStyle = isWeekendFlag ? '#c0e674' : 'rgba(255,255,255,0.75)';
 						ctx.fillRect(bx, by, blockSize, blockSize);
 
 						ctx.fillStyle = 'black';
