@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './App.module.scss';
+import worldsDef from './worldsDef';
 
 // from https://riptutorial.com/html5-canvas/example/18742/rendering-text-along-an-arc-
 (function(){
@@ -10,8 +11,6 @@ import styles from './App.module.scss';
                                            // if false use absolute coordinates which is a little quicker
                                            // after render the currentTransform is restored to default transform
                                            
-      
-
     // measure circle text
     // ctx: canvas context
     // text: string of text to measure
@@ -143,65 +142,6 @@ import styles from './App.module.scss';
 function TwoWorldsProto() {
 	const canvasRef = React.useRef(null);
 
-	const worldsDef = {
-		inner: {
-			name: "Union City",
-			gmtOffset: -5,
-			blocks: [
-				{
-					start: 2230,
-					end:    630,
-					name:  'Sleep',
-				},
-				{
-					start:  630,
-					end:   1300,
-					name:  'Morning',
-				},
-				{
-					start: 1300,
-					end:   1700,
-					name:  'Rest',
-				},
-				{
-					start: 1700,
-					end:   2230,
-					name:  'Evening',
-				}
-			],
-			days: {
-				Weekend: [0, 6],
-				Weekday: [1,2,3,4,5]
-			}
-		},
-		outer: {
-			name: "Israel",
-			gmtOffset: +2,
-			blocks: [
-				{
-					start: 2230,
-					end:    700,
-					name:  'Sleep',
-					current: true
-				},
-				{
-					start:  700,
-					end:   1730,
-					name:  'Work',
-				},
-				{
-					start: 1730,
-					end:   2230,
-					name:  'Evening',
-				}
-			],
-			days: {
-				Weekend: [5, 6],
-				Weekday: [0,1,2,3,4]
-			}
-		}
-	}
-
 	const a2r = angle => (Math.PI / 180) * angle;
 
 	// Useful code also received from https://stackoverflow.com/questions/14193956/draw-arc-will-linear-gradient-html5-canvas
@@ -213,9 +153,9 @@ function TwoWorldsProto() {
 				clearInterval(TwoWorldsProto.tid)
 			}
 
-			// const setIntervalx = f => f();
+			const setIntervalx = f => f();
 
-			TwoWorldsProto.tid = setInterval(() => {
+			TwoWorldsProto.tid = setIntervalx(() => {
 
 				const ctx = canvas.getContext('2d');
 				ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -274,6 +214,29 @@ function TwoWorldsProto() {
 					ctx.translate(-cx, -cy);
 					
 					// console.log(`Set: ${set.name}, currentTimeAdjusted=${currentTimeAdjusted}, currentRotation=${currentRotation}`)
+
+					// Find proper blocks struct from worldsDef based on current day of week
+					const date = new Date();
+					// First, convert date to GMT
+					date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
+					// Then move date by this set's GMT offset
+					date.setHours(date.getHours() + set.gmtOffset);
+
+					const currentDayNum = date.getDay();
+					const isWeekend = !(set.weekdays.includes(currentDayNum));
+					
+					// Store for use later
+					set.isWeekend = isWeekend;
+					set.currentDayNum = currentDayNum;
+
+					// Set .blocks to the current day
+					set.blocks = set.week.find(d => d.days.includes(currentDayNum));
+					if(!set.blocks) {
+						console.warn("This is for debugging the next error: ", { set, currentDayNum });
+						throw new Error("Could not find a day in set.weeks that includes currentDayNum=" + currentDayNum)
+					} else {
+						set.blocks = set.blocks.blocks;
+					}
 
 					set.blocks.forEach(block => {
 						const { start, end } = block;
@@ -355,23 +318,24 @@ function TwoWorldsProto() {
 				const innerTime = lpad(currentUtcHours + localSet.gmtOffset)    + ':' + minutesPadded;
 				const outerTime = lpad(currentUtcHours + nonLocalSet.gmtOffset) + ':' + minutesPadded;
 
-				const currentDayNum = currentDate.getDay(),
-					currentDayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][currentDayNum],
-					isLocalWeekend = localSet.days.Weekend.includes(currentDayNum),
-					isNonLocalWeeked = nonLocalSet.days.Weekend.includes(currentDayNum);
+				const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+					localDay         = days[localSet.currentDayNum],
+					nonLocalDay      = days[nonLocalSet.currentDayNum],
+					isLocalWeekend   = localSet.isWeekend,
+					isNonLocalWeeked = nonLocalSet.isWeekend;
 
 				ctx.font = '48px serif';
-				ctx.fillText(outerTime, cx, radiusBase * .3);
-				ctx.fillText(innerTime, cx, radiusBase * .51 + 48 * 1.25);
+				ctx.fillText(outerTime, cx, radiusBase * .2825);
+				ctx.fillText(innerTime, cx, radiusBase * .51 + 48 * 1.33);
 
 				ctx.font = '18px serif';
-				ctx.fillText(nonLocalSet.name, cx, radiusBase * .3  - 48 * 1);
-				ctx.fillText(localSet.name,    cx, radiusBase * .51 + 48 * 1.4);
+				ctx.fillText(nonLocalSet.name, cx, radiusBase * .3  - 48 * 1.2);
+				// ctx.fillText(nonLocalDay,      cx - 18 * 4.33, radiusBase * .3 - 18 * 1.25);
+				// ctx.fillText(isNonLocalWeeked ? 'Weekend' : 'Weekday', cx + 18 * 5.25, radiusBase * .3 - 18 * 1.25);
 
-				ctx.fillText(currentDayName,   cx - 18 * 4, radiusBase * .3 - 18 * 1.1);
-				
-				ctx.fillText(isNonLocalWeeked ? 'Weekend' : 'Weekday', cx + 18 * 5, radiusBase * .3 - 18 * 1.1);
-				ctx.fillText(isLocalWeekend   ? 'Weekend' : 'Weekday', cx, radiusBase * .51 + 48 * 1.8);
+				ctx.fillText(localSet.name,    cx, radiusBase * .51 + 48 * 1.625);
+				// ctx.fillText(localDay,         cx, radiusBase * .51 + 48 * 2.02);
+				// ctx.fillText(isLocalWeekend   ? 'Weekend' : 'Weekday', cx, radiusBase * .51 + 48 * 2.4);
 
 				// Draw line at current time
 				ctx.beginPath();
@@ -381,6 +345,82 @@ function TwoWorldsProto() {
 				ctx.lineWidth = 20;
 				ctx.strokeStyle = 'rgba(255,255,255,0.5)'
 				ctx.stroke();
+
+				function renderWeekBlocks(blocks, yStart) {
+					ctx.save();
+					const blockSize = 16,
+						blockPadding = 4,
+						blockFontsize = 10,
+						itemWidth = blockSize + blockPadding,
+						by = yStart;
+					// start bx at center - half total width
+					let bx = cx - (itemWidth * weekBlocks.length) / 2;
+
+					for(const block of blocks) {
+						const [ dayName, isWeekendFlag ] = block;
+
+						// ctx.globalAlpha = block === weekBlocks[0] || block === weekBlocks[weekBlocks.length-1] ? 0.5 : 1;
+						const centerIdx = blocks.length / 2 -.5;
+						const blockIdx = centerIdx - Math.abs(centerIdx - blocks.indexOf(block));
+						const alpha = blockIdx / centerIdx;
+						ctx.globalAlpha = alpha + .1;
+						console.log({ blockIdx, alpha, centerIdx })
+						ctx.fillStyle = isWeekendFlag ? 'yellow' : 'rgba(255,255,255,0.75)';
+						ctx.fillRect(bx, by, blockSize, blockSize);
+						// roundedRect(ctx, bx, by, blockSize - 4, blockSize - 4, 2);
+
+						ctx.fillStyle = 'black';
+						ctx.font = blockFontsize + "px monospace";
+						ctx.textBaseline = 'top';
+						ctx.fillText(dayName, bx + blockSize / 2 - blockFontsize / 2 + 5, by + blockSize / 2 - blockFontsize / 2);
+						
+						bx += itemWidth;
+					}
+					ctx.restore();
+				}
+
+
+				const dayLetters = ['S','M','T','W','R','F','S'];
+				// for(let d = nonLocalSet.currentDayNum - 5; d < )
+				const buildWeekBlocks = set => {
+					const blocks = [];
+					// set.currentDayNum =4;
+					for(let x = 0; x < 9; x++) {
+						let d = set.currentDayNum - 4 + x;
+						// if (d < 0) {
+						// 	d = 7 + d;
+						// } else
+						// if (d > 6) {
+						// 	d = 7 - d;
+						// }
+						if (d > 6) {
+							d = d - 7;
+						} else
+						if (d < 0) {
+							d = d + 7;
+						}
+						const dayLetter = dayLetters[d];
+						blocks.push([ dayLetter, !set.weekdays.includes(d), d ]);
+					}
+					// console.log({ set, blocks })
+					console.log(blocks);
+					return blocks;
+				}
+				const weekBlocks = buildWeekBlocks(nonLocalSet);
+				const weekBlocks2 = buildWeekBlocks(localSet);
+				
+				// 9 days, day 0 and 8 fade out 50%, day 5 is center day so and it is current
+				// Struct of members is [ dayName, isWeekendFlag ]
+				// const weekBlocks  = [ ['M',0],['T',0], ['W',0],['R',0],['F',1],['S',1],['S',0],['M',0],['T',0] ];
+				// const weekBlocks2 = [ ['M',0],['T',0], ['W',0],['R',0],['F',0],['S',1],['S',1],['M',0],['T',0] ];
+
+				renderWeekBlocks(weekBlocks,  cy + radiusBase * .4 + 50);
+				renderWeekBlocks(weekBlocks2, cy + radiusBase * .4 + 70);
+
+				ctx.font = '18px serif';
+				ctx.fillText(`${nonLocalSet.name}: ${nonLocalDay} ${isNonLocalWeeked ? '(Weekend)' : ''}`, cx, cy + radiusBase * .4 + 47);
+				ctx.fillText(`${localSet.name}: ${localDay} ${isLocalWeekend ? '(Weekend)' : ''}`, cx, cy + radiusBase * .4 + 108);
+
 
 			}, 1000 / 10);
 
