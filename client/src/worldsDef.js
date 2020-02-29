@@ -135,11 +135,11 @@ const worldsDef = {
 					},
 					{
 						start: 1200,
-						end:   1500,
+						end:   1700,
 						name:  'Afternoon',
 					},
 					{
-						start: 1500,
+						start: 1700,
 						end:   1945,
 						name:  'Church',
 					},
@@ -166,13 +166,13 @@ const worldsDef = {
 					},
 					{
 						start: 1200,
-						end:   1500,
+						end:   1730,
 						name:  'Afternoon',
 					},
 					{
-						start: 1500,
+						start: 1730,
 						end:   2300,
-						name:  'Church',
+						name:  'Evening',
 					},
 				], // blocks
 			}, // day 
