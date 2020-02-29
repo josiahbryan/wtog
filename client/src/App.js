@@ -199,20 +199,6 @@ function TwoWorldsProto() {
 
 					const radius = radiusBase * (set === localSet ? .3 : .4);
 
-					let currentTimeAdjusted = currentUtcHours + set.gmtOffset;
-					if (currentTimeAdjusted < 0) {
-						currentTimeAdjusted = 24 + currentTimeAdjusted;
-					}
-
-					currentTimeAdjusted = parseFloat(currentTimeAdjusted + minutesPadded)
-						+ (currentDate.getMilliseconds() / 1000 + currentDate.getSeconds()) / 60;
-
-					const currentRotation = currentTimeAdjusted / timeMax * 360;
-					 
-					ctx.translate(cx, cy);
-					ctx.rotate(a2r(currentRotation));
-					ctx.translate(-cx, -cy);
-					
 					// console.log(`Set: ${set.name}, currentTimeAdjusted=${currentTimeAdjusted}, currentRotation=${currentRotation}`)
 
 					// Find proper blocks struct from worldsDef based on current day of week
@@ -229,6 +215,23 @@ function TwoWorldsProto() {
 					// Store for use later
 					set.isWeekend = isWeekend;
 					set.currentDayNum = currentDayNum;
+					set.localHours = date.getHours();
+
+					let currentTimeAdjusted = date.getHours();
+					// if (currentTimeAdjusted < 0) {
+					// 	currentTimeAdjusted = 24 + currentTimeAdjusted;
+					// }
+
+					currentTimeAdjusted = parseFloat(currentTimeAdjusted + minutesPadded)
+						+ (currentDate.getMilliseconds() / 1000 + currentDate.getSeconds()) / 60;
+
+					const currentRotation = currentTimeAdjusted / timeMax * 360;
+					 
+					ctx.translate(cx, cy);
+					ctx.rotate(a2r(currentRotation));
+					ctx.translate(-cx, -cy);
+					
+					
 
 					// Set .blocks to the current day for this set
 					set.blocks = set.week.find(d => d.days.includes(currentDayNum));
@@ -315,8 +318,8 @@ function TwoWorldsProto() {
 				const nonLocalSet = localSet === inner ? outer : inner;
 
 				const lpad = x => (x<10 ? '0' : '') + x;
-				const innerTime = lpad(currentUtcHours + localSet.gmtOffset)    + ':' + minutesPadded;
-				const outerTime = lpad(currentUtcHours + nonLocalSet.gmtOffset) + ':' + minutesPadded;
+				const innerTime = lpad(localSet.localHours)    + ':' + minutesPadded;
+				const outerTime = lpad(nonLocalSet.localHours) + ':' + minutesPadded;
 
 				const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
 					localDay         = days[localSet.currentDayNum],
